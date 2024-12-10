@@ -15,5 +15,4 @@ public class UpdateUserRequest {
     private String fullName;
     private String email;
     private LocalDate dob;
-    private LocalDate createAt;
 }

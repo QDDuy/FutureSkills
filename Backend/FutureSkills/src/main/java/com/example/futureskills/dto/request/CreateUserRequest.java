@@ -3,6 +3,8 @@ package com.example.futureskills.dto.request;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.util.HashSet;
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
@@ -15,5 +17,5 @@ public class CreateUserRequest {
     private String fullName;
     private String email;
     private LocalDate dob;
-
+    private HashSet<String> roles = new HashSet<>();
 }

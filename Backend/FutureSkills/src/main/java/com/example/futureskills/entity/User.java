@@ -4,6 +4,9 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Set;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -22,10 +25,11 @@ public class User {
     private String email;
     private LocalDate dob;
     @Column(updatable = false)
-    private LocalDate createAt;
-
+    private LocalDateTime createdAt;
+    @ElementCollection(fetch = FetchType.EAGER)
+    private Set<String> roles;
     @PrePersist
     protected void onCreate() {
-        this.createAt = LocalDate.now();
+        this.createdAt = LocalDateTime.now();
     }
 }

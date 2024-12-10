@@ -15,17 +15,23 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import lombok.experimental.NonFinal;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.engine.spi.CollectionEntry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.text.ParseException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.Optional;
+import java.util.StringJoiner;
 import java.util.UUID;
 
 import static org.hibernate.query.sqm.tree.SqmNode.log;
@@ -55,19 +61,19 @@ public class AuthenticationService {
 
     }
 
-        public IntrospectResponse introspect(IntrospectRequest request ) throws ParseException, JOSEException {
-            var token=request.getToken();
-            boolean valid=true;
-            try {
-                verifyToken(token);
+    public IntrospectResponse introspect(IntrospectRequest request) throws ParseException, JOSEException {
+        var token = request.getToken();
+        boolean valid = true;
+        try {
+            verifyToken(token);
 
-            }catch (AppException e){
-                valid=false;
-            }
-            return IntrospectResponse.builder()
-                    .valid(valid)
-                    .build();
+        } catch (AppException e) {
+            valid = false;
         }
+        return IntrospectResponse.builder()
+                .valid(valid)
+                .build();
+    }
 
     public SignedJWT verifyToken(String token) throws JOSEException, ParseException {
         JWSVerifier verifier = new MACVerifier(SIGNER_KEY.getBytes());
@@ -76,15 +82,17 @@ public class AuthenticationService {
         var verified = signedJWT.verify(verifier);
         if (!(verified && expirationTime.after(new Date()))) {
             throw new AppException(ErrorCode.UNAUTHORIZED);
-        }if(userRepository.existsById(signedJWT.getJWTClaimsSet().getSubject())){
+        }
+        if (userRepository.existsById(signedJWT.getJWTClaimsSet().getSubject())) {
             throw new AppException(ErrorCode.UNAUTHENTICATED);
-        };
+        }
+        ;
         return signedJWT;
     }
 
 
     private String generateToken(User user) {
-        JWSHeader jwsHeader = new JWSHeader(JWSAlgorithm.HS256);
+        JWSHeader jwsHeader = new JWSHeader(JWSAlgorithm.HS512);
         JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
                 .subject(user.getUserName())  // lấy tên người dùng từ đối tượng user
                 .issuer("quachduy.com")
@@ -94,6 +102,7 @@ public class AuthenticationService {
                 ))
                 .jwtID(UUID.randomUUID().toString())
                 .claim("userId", user.getId())
+                .claim("scope", buildScope(user))
                 .build();
         Payload payload = new Payload(jwtClaimsSet.toJSONObject());
         JWSObject jwsObject = new JWSObject(jwsHeader, payload);
@@ -105,4 +114,13 @@ public class AuthenticationService {
         }
     }
 
+
+
+    private String buildScope(User user) {
+        StringJoiner stringJoiner = new StringJoiner("");
+        if (!CollectionUtils.isEmpty(user.getRoles())) {
+            user.getRoles().forEach(stringJoiner::add);
+        }
+        return stringJoiner.toString();
+    }
 }

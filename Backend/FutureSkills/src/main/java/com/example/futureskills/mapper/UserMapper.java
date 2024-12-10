@@ -12,12 +12,7 @@ import org.mapstruct.MappingTarget;
 public interface UserMapper {
 
     User toUser(CreateUserRequest user);
-    @Mapping(source = "id", target = "id")
-    @Mapping(source = "userName", target = "userName")
-    @Mapping(source = "fullName", target = "fullName")
-    @Mapping(source = "email", target = "email")
-    @Mapping(source = "dob", target = "dob")
-    @Mapping(source = "createAt", target = "createAt")
+  
     UserResponse toResponse(User user);
 
     void updateUser(UpdateUserRequest request, @MappingTarget User user);

@@ -5,6 +5,8 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Set;
 
 
 @Builder
@@ -17,11 +19,10 @@ import java.time.LocalDate;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class UserResponse {
     private String id;
-
     private String userName;
     private String fullName;
     private String email;
     private LocalDate dob;
-    private LocalDate createAt;
-
+    private LocalDateTime createdAt;
+    private Set<String> roles;
 }
