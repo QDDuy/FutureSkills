@@ -6,8 +6,10 @@ import com.example.futureskills.dto.response.ApiResponse;
 import com.example.futureskills.dto.response.UserResponse;
 import com.example.futureskills.entity.User;
 import com.example.futureskills.service.UserService;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -22,8 +24,10 @@ public class UserController {
 
     @GetMapping("/get_all")
     public ApiResponse<List<UserResponse>> getAllUsers() {
+        var authentication= SecurityContextHolder.getContext().getAuthentication();
         List<UserResponse> userResponses = userService.getAll();
-        log.info(userResponses.toString());
+        log.info("UserName:{}",authentication.getName());
+        authentication.getAuthorities().forEach(grantedAuthority -> log.info(grantedAuthority.getAuthority()));
         return ApiResponse.<List<UserResponse>>builder()
                 .result(userResponses)
                 .build();
@@ -43,7 +47,7 @@ public class UserController {
     }
 
     @PostMapping("/create")
-    public ApiResponse<UserResponse> createUser(@RequestBody CreateUserRequest request) {
+    public ApiResponse<UserResponse> createUser(@RequestBody @Valid CreateUserRequest request) {
         UserResponse userResponse = userService.createUser(request);
         return ApiResponse.<UserResponse>builder()
                 .result(userResponse)

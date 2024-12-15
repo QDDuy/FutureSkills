@@ -24,5 +24,4 @@ public class UserResponse {
     private String email;
     private LocalDate dob;
     private LocalDateTime createdAt;
-    private Set<String> roles;
 }

@@ -2,6 +2,7 @@ package com.example.futureskills.exceptions;
 
 import com.example.futureskills.dto.response.ApiResponse;
 import jakarta.validation.ConstraintViolation;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +16,7 @@ import java.nio.file.AccessDeniedException;
 import java.util.Map;
 import java.util.Objects;
 
+@Slf4j
 @ControllerAdvice
 public class GlobalHandlerExceptions {
     private static final String MIN_ATTRIBUTE = "min";
@@ -49,20 +51,12 @@ public class GlobalHandlerExceptions {
     @ExceptionHandler(value = MethodArgumentNotValidException.class)
     ResponseEntity<ApiResponse> handlingMethodArgumentNotValidException(MethodArgumentNotValidException exception) {
         String enumKey = exception.getFieldError().getDefaultMessage();
-        ErrorCode errorCode = ErrorCode.INVALID_KEY;
-        Map<String, Object> attribute = null;
-        try {
-            errorCode = ErrorCode.valueOf(enumKey);
-            var constrainViolation = exception.getBindingResult().getAllErrors()
-                    .get(0).unwrap(ConstraintViolation.class);
-            attribute = constrainViolation.getConstraintDescriptor().getAttributes();
-
-        } catch (IllegalArgumentException e) {
-            e.printStackTrace();
-        }
+        log.info("dd" + enumKey);
+        ErrorCode errorCode = ErrorCode.valueOf(enumKey);
+        log.info("ErrorCode " + errorCode);
         ApiResponse apiResponse = new ApiResponse();
         apiResponse.setCode(errorCode.getCode());
-        apiResponse.setMessage(Objects.nonNull(attribute) ? mapAttribute(errorCode.getMessage(), attribute) : errorCode.getMessage());
+        apiResponse.setMessage(errorCode.getMessage());
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(apiResponse);
     }

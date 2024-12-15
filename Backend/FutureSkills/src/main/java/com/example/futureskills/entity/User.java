@@ -26,8 +26,8 @@ public class User {
     private LocalDate dob;
     @Column(updatable = false)
     private LocalDateTime createdAt;
-    @ElementCollection(fetch = FetchType.EAGER)
-    private Set<String> roles;
+    @ManyToMany
+    private Set<Role> roles;
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();

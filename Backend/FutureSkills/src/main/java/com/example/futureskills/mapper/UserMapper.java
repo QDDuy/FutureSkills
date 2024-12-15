@@ -12,8 +12,9 @@ import org.mapstruct.MappingTarget;
 public interface UserMapper {
 
     User toUser(CreateUserRequest user);
-  
-    UserResponse toResponse(User user);
 
-    void updateUser(UpdateUserRequest request, @MappingTarget User user);
+    UserResponse toResponse(User user);
+    @Mapping(target = "roles", ignore = true)
+    void updateUser(@MappingTarget User user, UpdateUserRequest request);
+
 }
