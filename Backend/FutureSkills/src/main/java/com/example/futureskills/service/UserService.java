@@ -38,8 +38,8 @@ public class UserService {
     @Autowired
     private RoleRepository roleRepository;
 
-//    @PreAuthorize("hasRole('STUDENT')")
-    @PreAuthorize("hasAuthority('UPDATE_COURSE')")
+    @PreAuthorize("hasRole('ADMIN')")
+//    @PreAuthorize("hasAuthority('UPDATE_COURSE')")
     public List<UserResponse> getAll() {
         var authentication = SecurityContextHolder.getContext().getAuthentication();
         List<User> listUser = userRepository.findAll();

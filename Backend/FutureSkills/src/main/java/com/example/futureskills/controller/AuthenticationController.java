@@ -2,6 +2,8 @@ package com.example.futureskills.controller;
 
 import com.example.futureskills.dto.request.AuthenticationRequest;
 import com.example.futureskills.dto.request.IntrospectRequest;
+import com.example.futureskills.dto.request.LogoutRequest;
+import com.example.futureskills.dto.request.RefreshTokenRequest;
 import com.example.futureskills.dto.response.ApiResponse;
 import com.example.futureskills.dto.response.AuthenticationResponse;
 import com.example.futureskills.dto.response.IntrospectResponse;
@@ -21,9 +23,10 @@ import java.text.ParseException;
 public class AuthenticationController {
     @Autowired
     private AuthenticationService authenticationService;
+
     @PostMapping("/token")
-    public ApiResponse<AuthenticationResponse> authentication(@RequestBody AuthenticationRequest request){
-       var result = authenticationService.authenticate(request);
+    public ApiResponse<AuthenticationResponse> authentication(@RequestBody AuthenticationRequest request) {
+        var result = authenticationService.authenticate(request);
         return ApiResponse.<AuthenticationResponse>builder()
                 .result(result)
                 .build();
@@ -31,9 +34,21 @@ public class AuthenticationController {
 
     @PostMapping("/introspect")
     public ApiResponse<IntrospectResponse> introspect(@RequestBody IntrospectRequest request) throws ParseException, JOSEException {
-        var result=authenticationService.introspect(request);
+        var result = authenticationService.introspect(request);
         return ApiResponse.<IntrospectResponse>builder()
                 .result(result)
                 .build();
+    }
+
+    @PostMapping("/logout")
+    public ApiResponse<Void> logout(@RequestBody LogoutRequest request) throws ParseException, JOSEException {
+        authenticationService.Logout(request);
+        return ApiResponse.<Void>builder().build();
+    }
+
+    @PostMapping("/refresh-token")
+    public ApiResponse<AuthenticationResponse> refreshToken(@RequestBody RefreshTokenRequest request) throws ParseException, JOSEException {
+        var results = authenticationService.refreshToken(request);
+        return ApiResponse.<AuthenticationResponse>builder().result(results).build();
     }
 }

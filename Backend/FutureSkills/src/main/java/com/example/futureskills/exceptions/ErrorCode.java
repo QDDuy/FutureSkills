@@ -12,10 +12,11 @@ public enum ErrorCode {
     INVALID_KEY(1005, "Invalid message key", HttpStatus.BAD_REQUEST),
     UNAUTHORIZED(1006,"You dont have permission",HttpStatus.FORBIDDEN),
     ROLE_EXISTED(1007,"Role existed",HttpStatus.NOT_FOUND),
-    PASSWORD_INVALID(1008,"Password must be at least 8 characters",HttpStatus.BAD_REQUEST),
-    USERNAME_INVALID(1009,"Username must be at least 3 characters",HttpStatus.BAD_REQUEST),
+    PASSWORD_INVALID(1008,"Password must be at least {min} characters",HttpStatus.BAD_REQUEST),
+    USERNAME_INVALID(1009,"Username must be at least {min} characters",HttpStatus.BAD_REQUEST),
     EMAIL_INVALID(1010,"Email is invalid",HttpStatus.BAD_REQUEST),
-    DOB_INVALID(1011,"Dob is invalid",HttpStatus.BAD_REQUEST),;
+    DOB_INVALID(1011,"Your age must be at least {min}",HttpStatus.BAD_REQUEST),
+    IS_LOGOUT(1012,"You logouted",HttpStatus.UNAUTHORIZED),;
     private int code;
     private String message;
     private HttpStatusCode statusCode;

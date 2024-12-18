@@ -1,5 +1,6 @@
 package com.example.futureskills.configuation;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,8 +24,10 @@ import javax.crypto.spec.SecretKeySpec;
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
-
-    private final String[] PUBLIC_ENDPOINTS = {"/api/user/create", "/api/auth/token", "/api/auth/introspect"};
+    @Autowired
+    private CustomeJwtDecoder customeJwtDecoder;
+    private final String[] PUBLIC_ENDPOINTS = {"/api/user/create", "/api/auth/token",
+            "/api/auth/introspect","/api/auth/logout","/api/auth/refresh-token"};
     @Value("${jwtSignerKey}")
     protected String SIGNER_KEY;
 
@@ -37,7 +40,7 @@ public class SecurityConfig {
                 );
 
         httpSecurity.oauth2ResourceServer(
-                oauth2 -> oauth2.jwt(jwtConfigurer -> jwtConfigurer.decoder(jwtDecoder())
+                oauth2 -> oauth2.jwt(jwtConfigurer -> jwtConfigurer.decoder(customeJwtDecoder)
                         .jwtAuthenticationConverter(jwtAuthenticationConverter()))
                         .authenticationEntryPoint(new JwtAuthenticationEntrypoint())
         );
@@ -45,11 +48,7 @@ public class SecurityConfig {
         return httpSecurity.build();
     }
 
-    @Bean
-    JwtDecoder jwtDecoder() {
-        SecretKeySpec spec = new SecretKeySpec(SIGNER_KEY.getBytes(), "HS512");
-        return NimbusJwtDecoder.withSecretKey(spec).macAlgorithm(MacAlgorithm.HS512).build();
-    }
+
 
        @Bean
     JwtAuthenticationConverter jwtAuthenticationConverter() {
