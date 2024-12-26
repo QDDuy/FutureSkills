@@ -14,7 +14,11 @@ import com.example.futureskills.repository.UserRepository;
 import com.nimbusds.jose.proc.SecurityContext;
 import lombok.extern.slf4j.Slf4j;
 import lombok.extern.slf4j.XSlf4j;
+
 import org.springframework.beans.factory.annotation.Autowired;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -38,12 +42,9 @@ public class UserService {
     @Autowired
     private RoleRepository roleRepository;
 
-    @PreAuthorize("hasRole('ADMIN')")
-//    @PreAuthorize("hasAuthority('UPDATE_COURSE')")
-    public List<UserResponse> getAll() {
-        var authentication = SecurityContextHolder.getContext().getAuthentication();
-        List<User> listUser = userRepository.findAll();
-        return listUser.stream().map(userMapper::toResponse).toList();
+    public Page<UserResponse> getAll(Pageable pageable) {
+        Page<User> pageUser = userRepository.findAll(pageable); // Phân trang người dùng
+        return pageUser.map(userMapper::toResponse); // Chuyển đổi sang UserResponse
     }
 
     @PostAuthorize("returnObject.userName==authentication.name")

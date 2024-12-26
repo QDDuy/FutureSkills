@@ -4,16 +4,16 @@ import com.example.futureskills.dto.request.CreateUserRequest;
 import com.example.futureskills.dto.request.UpdateUserRequest;
 import com.example.futureskills.dto.response.ApiResponse;
 import com.example.futureskills.dto.response.UserResponse;
-import com.example.futureskills.entity.User;
 import com.example.futureskills.service.UserService;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.List;
 
 @Slf4j
 @RestController
@@ -23,15 +23,23 @@ public class UserController {
     private UserService userService;
 
     @GetMapping("/get_all")
-    public ApiResponse<List<UserResponse>> getAllUsers() {
-        var authentication= SecurityContextHolder.getContext().getAuthentication();
-        List<UserResponse> userResponses = userService.getAll();
-        log.info("UserName:{}",authentication.getName());
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<Page<UserResponse>> getAllUsers(Pageable pageable) {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        // Lấy danh sách người dùng đã phân trang
+        Page<UserResponse> userResponses = userService.getAll(pageable);
+
+        // Log tên người dùng và các quyền của họ
+        log.info("UserName:{}", authentication.getName());
         authentication.getAuthorities().forEach(grantedAuthority -> log.info(grantedAuthority.getAuthority()));
-        return ApiResponse.<List<UserResponse>>builder()
+
+        // Trả về ApiResponse với dữ liệu phân trang
+        return ApiResponse.<Page<UserResponse>>builder()
                 .result(userResponses)
                 .build();
     }
+
 
     @GetMapping("/get/{id}")
     public ApiResponse<UserResponse> getUserById(@PathVariable String id) {

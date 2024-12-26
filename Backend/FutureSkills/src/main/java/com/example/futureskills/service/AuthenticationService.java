@@ -20,20 +20,28 @@ import com.nimbusds.jwt.SignedJWT;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.text.ParseException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.List;
 import java.util.StringJoiner;
 import java.util.UUID;
 
 @Slf4j
 @Service
+@EnableScheduling
 public class AuthenticationService {
     @Autowired
     private UserRepository userRepository;
@@ -65,7 +73,7 @@ public class AuthenticationService {
         var token = request.getToken();
         boolean valid = true;
         try {
-            verifyToken(token,false);
+            verifyToken(token, false);
 
         } catch (AppException e) {
             valid = false;
@@ -82,8 +90,8 @@ public class AuthenticationService {
 
         Date expirationTime = (isRefresh)
                 ? new Date(signedJWT.getJWTClaimsSet().getIssueTime()
-                    .toInstant().plus(REFRESH_DURATION,ChronoUnit.SECONDS).toEpochMilli())
-                :signedJWT.getJWTClaimsSet().getExpirationTime();
+                .toInstant().plus(REFRESH_DURATION, ChronoUnit.SECONDS).toEpochMilli())
+                : signedJWT.getJWTClaimsSet().getExpirationTime();
         var verified = signedJWT.verify(verifier);
         if (!(verified && expirationTime.after(new Date()))) {
             throw new AppException(ErrorCode.UNAUTHORIZED);
@@ -122,7 +130,7 @@ public class AuthenticationService {
     public AuthenticationResponse refreshToken(RefreshTokenRequest request)
             throws ParseException, JOSEException {
         //1 kiểm tra hiệu lục token
-        var signedJWT = verifyToken(request.getToken(),true);
+        var signedJWT = verifyToken(request.getToken(), true);
         //2 Invalidate token cũ, logout token
         var jit = signedJWT.getJWTClaimsSet().getJWTID();
         var expiryTime = signedJWT.getJWTClaimsSet().getExpirationTime();
@@ -142,8 +150,8 @@ public class AuthenticationService {
     }
 
     public void Logout(LogoutRequest request) throws ParseException, JOSEException {
-        try{
-            var jwtToken = verifyToken(request.getToken(),true);
+        try {
+            var jwtToken = verifyToken(request.getToken(), true);
             log.info(String.valueOf(jwtToken));
             //Lấy jwtID
             String jit = jwtToken.getJWTClaimsSet().getJWTID();
@@ -154,7 +162,7 @@ public class AuthenticationService {
                     .expiryTime(expiryTime)
                     .build();
             invalidatedTokenRepository.save(invalidatedToken);
-        }catch (AppException e){
+        } catch (AppException e) {
             log.info("Token already expired");
         }
 
@@ -174,4 +182,41 @@ public class AuthenticationService {
         }
         return stringJoiner.toString();
     }
+
+
+
+    @Scheduled(cron = "0 0 * * * ?")
+    public void cleanExpiredToken() {
+        Date now = new Date();
+        log.info("Bắt đầu xóa token hết hạn tại: {}", now);
+
+        int deletedCount = deleteAllExpiredTokens(now);
+
+        log.info("Đã xóa {} token hết hạn", deletedCount);
+    }
+
+    @Transactional
+    public int deleteAllExpiredTokens(Date now) {
+        int batchSize = 100;
+        Pageable pageable = PageRequest.of(0, batchSize);
+        int totalDeleted = 0;
+        Page<InvalidatedToken> expiredTokensPage;
+
+        // Lặp qua các trang cho đến khi không còn token hết hạn
+        do {
+            expiredTokensPage = invalidatedTokenRepository.findExpiredTokens(now, pageable);
+
+            if (!expiredTokensPage.isEmpty()) {
+                invalidatedTokenRepository.deleteExpiredTokens(now); // Xóa các token hết hạn
+                totalDeleted += expiredTokensPage.getNumberOfElements(); // Cộng số lượng token đã xóa
+                log.info("Đã xóa {} token hết hạn trong lần lặp này", expiredTokensPage.getNumberOfElements());
+            }
+
+            pageable = pageable.next(); // Tiến đến trang tiếp theo
+        } while (expiredTokensPage.hasContent());
+
+        return totalDeleted;
+    }
+
+
 }
