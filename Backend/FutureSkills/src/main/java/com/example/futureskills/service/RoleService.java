@@ -9,6 +9,7 @@ import com.example.futureskills.exceptions.ErrorCode;
 import com.example.futureskills.mapper.RoleMapper;
 import com.example.futureskills.repository.PermissionRepository;
 import com.example.futureskills.repository.RoleRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +18,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+@Slf4j
 @Service
 public class RoleService {
     @Autowired
@@ -35,11 +37,12 @@ public class RoleService {
     public RoleResponse createRole(RoleRequest roleRequest) {
         // Kiểm tra xem role có tồn tại không
         Optional<Role> check = roleRepository.findByName(roleRequest.getName());
-        if (check != null) {
+        if (check.isPresent()) {
             throw new AppException(ErrorCode.ROLE_EXISTED); // Mã lỗi ROLE_EXISTED
         }
 
         List<Permission> checkPermissions = permissionRepository.findAllById(roleRequest.getPermissions());
+        log.info("csd"+checkPermissions);
         if (checkPermissions.size() != roleRequest.getPermissions().size()) {
             throw new RuntimeException("Some permissions do not exist");
         }

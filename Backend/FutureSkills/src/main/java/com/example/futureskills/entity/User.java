@@ -8,13 +8,13 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
-@AllArgsConstructor
-@NoArgsConstructor
-@Data
-@Builder
-@Getter
-@Setter
-@Entity
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Data
+    @Builder
+    @Getter
+    @Setter
+    @Entity
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -23,6 +23,7 @@ public class User {
     private String password;
     private String fullName;
     private String email;
+    private String avatar;
     private LocalDate dob;
     @Column(updatable = false)
     private LocalDateTime createdAt;

@@ -16,7 +16,11 @@ public enum ErrorCode {
     USERNAME_INVALID(1009,"Username must be at least {min} characters",HttpStatus.BAD_REQUEST),
     EMAIL_INVALID(1010,"Email is invalid",HttpStatus.BAD_REQUEST),
     DOB_INVALID(1011,"Your age must be at least {min}",HttpStatus.BAD_REQUEST),
-    IS_LOGOUT(1012,"You logouted",HttpStatus.UNAUTHORIZED),;
+    IS_LOGOUT(1012,"You logouted",HttpStatus.UNAUTHORIZED),
+    CATEGORY_NAME_INVALID(1013,"Category name is invalid",HttpStatus.BAD_REQUEST),
+    CATEGORY_EXISTED(1014,"Category already existed",HttpStatus.CONFLICT),
+    CATEGORY_NOT_FOUND(1015,"Category not found",HttpStatus.NOT_FOUND),
+    ROLE_NOTFOUND(1016,"Role not found",HttpStatus.NOT_FOUND),;
     private int code;
     private String message;
     private HttpStatusCode statusCode;

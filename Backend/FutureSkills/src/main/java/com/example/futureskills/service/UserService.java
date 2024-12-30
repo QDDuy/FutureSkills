@@ -72,6 +72,7 @@ public class UserService {
 
 
     public UserResponse createUser(CreateUserRequest request) {
+        log.info("Service : createUser");
         // Kiểm tra xem người dùng đã tồn tại chưa
         Optional<User> findExistUser = userRepository.findByUserName(request.getUserName());
         if (findExistUser.isPresent()) {
@@ -83,16 +84,15 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(request.getPassword()));
 
         // Tìm role STUDENT từ cơ sở dữ liệu
-        Optional<Role> studentRole = roleRepository.findByName("STUDENT");
+        Role studentRole = roleRepository.findByName("STUDENT")
+                .orElseGet(() -> roleRepository.save(new Role("STUDENT")));
 
         // Nếu role không tồn tại, ném lỗi
-        if (studentRole.isEmpty()) {
-            throw new AppException(ErrorCode.USER_NOT_FOUND); // Ném lỗi nếu role không tồn tại
-        }
+
 
         // Thêm role vào user
         Set<Role> roles = new HashSet<>();
-        roles.add(studentRole.get());
+        roles.add(studentRole);
         user.setRoles(roles);
 
         // Lưu người dùng và trả về response
